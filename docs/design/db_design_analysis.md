@@ -88,7 +88,7 @@
    - Single email for students
    - Phone number format standardization
 
-## 5. ER Diagram
+## 4. Actual ER Diagram
 
 [Mermaid](https://mermaid.live/) code to generate the ER Diagram:
 
@@ -136,4 +136,162 @@ erDiagram
     CENTRES ||--o{ ENROLLMENTS : "hosts"
 ```
 
-![er-diagram](er_diagram.png)
+![er-diagram](initial_er_diagram.png)
+
+# Database Normalization
+
+## Current Normalization Issues
+
+1. **In CENTRES table:**
+   - Location data (`MUNICIPI`, `CP`, `ILLA`) represents a potential multivalued dependency
+
+2. **In STUDENTS table:**
+   - Location data (`comunitat_autonoma`, `municipi`, `codi_postal_i_districte`) represents a potential multivalued dependency
+
+3. **In ENROLLMENTS table:**
+   - Academic information (`tipus_ensenyament`, `modalitat`, `curs`, `nom_assignatura`) shows potential partial dependencies
+
+## Normalized Structure
+
+### 1NF (Already Satisfied):
+- All attributes are atomic
+- No repeating groups
+- Primary keys identified
+
+### 2NF and 3NF Normalized Structure:
+
+1. **LOCATION** (Extracted from both CENTRES and STUDENTS)
+```sql
+Primary Key: (ID)
+- ID
+- CP
+- MUNICIPI
+- comunitat_autonoma
+Unique (CP, MUNICIPI, comunitat_autonoma)
+```
+
+2. **CENTRES**
+```sql
+Primary Key: CODI
+- CODI
+- DENOMINACIÓ GENÈRICA
+- NOM
+- CORREU_ELECTRÒNIC_1
+- CORREU_ELECTRÒNIC_2
+- PÀGINA_WEB
+- TITULAR
+- NIF
+- LOCALITAT
+- ADREÇA
+- location_id (FK to LOCATION)
+- island_id (FK to ISLANDS)
+- TELEF1
+```
+
+3. **STUDENTS**
+```sql
+Primary Key: dni
+- dni
+- nom
+- primer_cognom
+- segon_cognom
+- correu_electronic
+- codi_postal_i_districte (split during data insertion to match LOCATION and leave here district)
+- location_id (FK to LOCATION)
+```
+
+4. **SUBJECTS**
+```sql
+Primary Key: (id)
+- id
+- nom_assignatura
+- tipus_ensenyament
+- modalitat
+- curs
+Unique (nom_assignatura, tipus_ensenyament, modalitat, curs)
+```
+
+5. **ENROLLMENTS**
+```sql
+Primary Key: (dni, subject_id, codi_centre)
+- dni (FK to STUDENTS)
+- subject_id (FK to SUBJECTS)
+- codi_centre (FK to CENTRES)
+- grup_de_classe
+```
+
+6. **ISLANDS**
+```sql
+Primary Key: (id)
+- id
+- illa
+```
+
+## Final ER Diagram
+
+[Mermaid](https://mermaid.live/) code to generate the ER Diagram:
+
+```
+erDiagram
+    LOCATION {
+        int id PK
+        string CP
+        string MUNICIPI
+        string comunitat_autonoma
+    }
+
+    ISLANDS {
+        int id PK
+        string illa
+    }
+
+    CENTRES {
+        string CODI PK
+        string DENOMINACIO_GENERICA
+        string NOM
+        string CORREU_ELECTRONIC_1
+        string CORREU_ELECTRONIC_2
+        string PAGINA_WEB
+        string TITULAR
+        string NIF
+        string LOCALITAT
+        string ADRECA
+        int location_id FK
+        int island_id FK
+        string TELEF1
+    }
+
+    STUDENTS {
+        string dni PK
+        string nom
+        string primer_cognom
+        string segon_cognom
+        string correu_electronic
+        string districte
+        int location_id FK
+    }
+
+    SUBJECTS {
+        int id PK
+        string nom_assignatura
+        string tipus_ensenyament
+        string modalitat
+        string curs
+    }
+
+    ENROLLMENTS {
+        string dni PK, FK
+        int subject_id PK, FK
+        string codi_centre PK, FK
+        string grup_de_classe
+    }
+
+    LOCATION ||--o{ CENTRES : "located_in"
+    LOCATION ||--o{ STUDENTS : "lives_in"
+    ISLANDS ||--o{ CENTRES : "belongs_to"
+    STUDENTS ||--o{ ENROLLMENTS : "has"
+    CENTRES ||--o{ ENROLLMENTS : "hosts"
+    SUBJECTS ||--o{ ENROLLMENTS : "included_in"
+```
+
+![er-diagram](normalized_er_diagram.png)
