@@ -144,6 +144,8 @@ erDiagram
 
 1. **In CENTRES table:**
    - Location data (`MUNICIPI`, `CP`, `ILLA`) represents a potential multivalued dependency
+   - In some cases one `TITULAR` is the owner of multiple centers
+   - Different centers have the same `DENOMINACIO' GENERICA`
 
 2. **In STUDENTS table:**
    - Location data (`comunitat_autonoma`, `municipi`, `codi_postal_i_districte`) represents a potential multivalued dependency
@@ -174,12 +176,12 @@ Unique (CP, MUNICIPI, comunitat_autonoma)
 ```sql
 Primary Key: CODI
 - CODI
-- DENOMINACIÓ GENÈRICA
+- centre_type_id (FK to CENTRE_TYPES)
 - NOM
 - CORREU_ELECTRÒNIC_1
 - CORREU_ELECTRÒNIC_2
 - PÀGINA_WEB
-- TITULAR
+- owner_id (FK to OWNERS)
 - NIF
 - LOCALITAT
 - ADREÇA
@@ -207,7 +209,7 @@ Primary Key: (id)
 - nom_assignatura
 - tipus_ensenyament
 - modalitat
-- curs
+- curs_year_id (FK to COURSE_YEARS)
 Unique (nom_assignatura, tipus_ensenyament, modalitat, curs)
 ```
 
@@ -225,6 +227,27 @@ Primary Key: (dni, subject_id, codi_centre)
 Primary Key: (id)
 - id
 - illa
+```
+
+7. **COURSE_YEARS**
+```sql
+Primary Key: (id)
+- id
+- curs
+```
+
+8. **CENTRE_TYPES**
+```sql
+Primary Key: (id)
+- id
+- denominacio_generica
+```
+
+6. **OWNERS**
+```sql
+Primary Key: (id)
+- id
+- titular
 ```
 
 ## Final ER Diagram
@@ -245,14 +268,29 @@ erDiagram
         string illa
     }
 
+    COURSE_YEARS {
+        int id PK
+        string curs
+    }
+
+    CENTRE_TYPES {
+        int id PK
+        string DENOMINACIO_GENERICA
+    }
+
+    OWNERS {
+        int id PK
+        string TITULAR
+    }
+
     CENTRES {
         string CODI PK
-        string DENOMINACIO_GENERICA
+        int type_id FK
         string NOM
         string CORREU_ELECTRONIC_1
         string CORREU_ELECTRONIC_2
         string PAGINA_WEB
-        string TITULAR
+        int owner_id FK
         string NIF
         string LOCALITAT
         string ADRECA
@@ -267,7 +305,7 @@ erDiagram
         string primer_cognom
         string segon_cognom
         string correu_electronic
-        string districte
+        string codi_postal_i_districte
         int location_id FK
     }
 
@@ -276,7 +314,7 @@ erDiagram
         string nom_assignatura
         string tipus_ensenyament
         string modalitat
-        string curs
+        int course_year_id FK
     }
 
     ENROLLMENTS {
@@ -289,9 +327,12 @@ erDiagram
     LOCATION ||--o{ CENTRES : "located_in"
     LOCATION ||--o{ STUDENTS : "lives_in"
     ISLANDS ||--o{ CENTRES : "belongs_to"
+    CENTRE_TYPES ||--o{ CENTRES : "categorizes"
+    OWNERS ||--o{ CENTRES : "owns"
+    COURSE_YEARS ||--o{ SUBJECTS : "belongs_to"
     STUDENTS ||--o{ ENROLLMENTS : "has"
     CENTRES ||--o{ ENROLLMENTS : "hosts"
     SUBJECTS ||--o{ ENROLLMENTS : "included_in"
 ```
 
-![er-diagram](normalized_er_diagram.png)
+![er-diagram](final_er_diagram.png)
