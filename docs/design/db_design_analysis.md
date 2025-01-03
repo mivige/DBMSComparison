@@ -90,7 +90,7 @@
 
 ## 5. ER Diagram
 
-(Mermaid)[https://mermaid.live/] code to generate the ER Diagram:
+[Mermaid](https://mermaid.live/) code to generate the ER Diagram:
 
 ```
 erDiagram
@@ -136,4 +136,4 @@ erDiagram
     CENTRES ||--o{ ENROLLMENTS : "hosts"
 ```
 
-[er_diagram.png]
+![er-diagram](er_diagram.png)
