@@ -198,7 +198,7 @@ Primary Key: dni
 - primer_cognom
 - segon_cognom
 - correu_electronic
-- codi_postal_i_districte (split during data insertion to match LOCATION and leave here district)
+- districte (split during data insertion to match LOCATION and leave here district)
 - location_id (FK to LOCATION)
 ```
 
@@ -210,7 +210,7 @@ Primary Key: (id)
 - tipus_ensenyament
 - modalitat
 - curs_year_id (FK to COURSE_YEARS)
-Unique (nom_assignatura, tipus_ensenyament, modalitat, curs)
+Unique (nom_assignatura, tipus_ensenyament, modalitat, curs_year_id)
 ```
 
 5. **ENROLLMENTS**
@@ -305,7 +305,7 @@ erDiagram
         string primer_cognom
         string segon_cognom
         string correu_electronic
-        string codi_postal_i_districte
+        string districte
         int location_id FK
     }
 
@@ -336,3 +336,26 @@ erDiagram
 ```
 
 ![er-diagram](final_er_diagram.png)
+
+## Validation of Normalization:
+
+1. **1NF Compliance:**
+   - All attributes are atomic, and there are no repeating groups. ✅
+
+2. **2NF Compliance:**
+   - All non-key attributes in each table depend entirely on the primary key. ✅
+
+3. **3NF Compliance:**
+   - Transitive dependencies are resolved. ✅
+
+4. **Composite Primary Keys:**
+   - The `ENROLLMENTS` table uses a composite primary key (`dni`, `subject_id`, `codi_centre`) to uniquely identify enrollments. ✅
+
+5. **Foreign Key Relationships:**
+   - Appropriate relationships are established between normalized tables, such as `location_id` linking `CENTRES` and `STUDENTS` to `LOCATION`. ✅
+
+6. **Handling Multivalued Attributes:**
+   - Attributes like `DENOMINACIÓ GENÈRICA` and `TITULAR` are extracted into separate tables (`CENTRE_TYPES` and `OWNERS`). ✅
+
+7. **Redundancy and Consistency:**
+   - Separation of `ISLANDS` and `LOCATION` reduces redundancy and improves data integrity. ✅
