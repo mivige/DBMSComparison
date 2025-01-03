@@ -359,3 +359,97 @@ erDiagram
 
 7. **Redundancy and Consistency:**
    - Separation of `ISLANDS` and `LOCATION` reduces redundancy and improves data integrity. ✅
+
+# SQL Code 
+SQL code to generate the final normalized tables:
+
+```sql
+-- Create table for LOCATION
+CREATE TABLE LOCATION (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    cp VARCHAR(10) NOT NULL,
+    municipi VARCHAR(100) NOT NULL,
+    comunitat_autonoma VARCHAR(100),
+    UNIQUE(cp, municipi, comunitat_autonoma)
+);
+
+-- Create table for ISLANDS
+CREATE TABLE ISLANDS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    illa VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Create table for COURSE_YEARS
+CREATE TABLE COURSE_YEARS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    curs VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- Create table for CENTRE_TYPES
+CREATE TABLE CENTRE_TYPES (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    denominacio_generica VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Create table for OWNERS
+CREATE TABLE OWNERS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titular VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Create table for CENTRES
+CREATE TABLE CENTRES (
+    codi VARCHAR(20) PRIMARY KEY,
+    type_id INT NOT NULL,
+    nom VARCHAR(100) NOT NULL,
+    correu_electronic_1 VARCHAR(100) NOT NULL,
+    correu_electronic_2 VARCHAR(100),
+    pagina_web VARCHAR(255),
+    owner_id INT NOT NULL,
+    nif VARCHAR(20),
+    localitat VARCHAR(100),
+    adreca VARCHAR(255),
+    location_id INT NOT NULL,
+    island_id INT NOT NULL,
+    telef1 VARCHAR(20),
+    FOREIGN KEY (type_id) REFERENCES CENTRE_TYPES(id),
+    FOREIGN KEY (owner_id) REFERENCES OWNERS(id),
+    FOREIGN KEY (location_id) REFERENCES LOCATION(id),
+    FOREIGN KEY (island_id) REFERENCES ISLANDS(id)
+);
+
+-- Create table for STUDENTS
+CREATE TABLE STUDENTS (
+    dni VARCHAR(20) PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    primer_cognom VARCHAR(100) NOT NULL,
+    segon_cognom VARCHAR(100),
+    correu_electronic VARCHAR(100) UNIQUE NOT NULL,
+    districte VARCHAR(50),
+    location_id INT NOT NULL,
+    FOREIGN KEY (location_id) REFERENCES LOCATION(id)
+);
+
+-- Create table for SUBJECTS
+CREATE TABLE SUBJECTS (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom_assignatura VARCHAR(100) NOT NULL,
+    tipus_ensenyament VARCHAR(50) NOT NULL,
+    modalitat VARCHAR(50) NOT NULL,
+    course_year_id INT NOT NULL,
+    UNIQUE(nom_assignatura, tipus_ensenyament, modalitat, course_year_id),
+    FOREIGN KEY (course_year_id) REFERENCES COURSE_YEARS(id)
+);
+
+-- Create table for ENROLLMENTS
+CREATE TABLE ENROLLMENTS (
+    dni VARCHAR(20) NOT NULL,
+    subject_id INT NOT NULL,
+    codi_centre VARCHAR(20) NOT NULL,
+    grup_de_classe VARCHAR(50),
+    PRIMARY KEY (dni, subject_id, codi_centre),
+    FOREIGN KEY (dni) REFERENCES STUDENTS(dni),
+    FOREIGN KEY (subject_id) REFERENCES SUBJECTS(id),
+    FOREIGN KEY (codi_centre) REFERENCES CENTRES(CODI)
+);
+```

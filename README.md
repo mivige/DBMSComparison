@@ -5,9 +5,9 @@ A comprehensive database system for managing educational enrollment data, featur
 DBMSComparison/
 ├── docs/
 │   ├── design/
-│   │   ├── database_schema.md
-│   │   ├── erd_diagram.md
-│   │   └── requirements.md
+│   │   ├── db_design_analysis.md
+│   │   ├── initial_er_diagram.png
+│   │   └── final_er_diagram.png
 │   ├── mysql/
 │   │   ├── optimization.md
 │   │   └── queries.md
@@ -29,21 +29,21 @@ DBMSComparison/
 │   │   │   └── analysis_queries.sql
 │   │   └── optimizations/
 │   │       └── indexes.sql
-│   ├── postgresql/
-│   │   ├── init/
-│   │   │   ├── 01_create_databases.sql
-│   │   │   ├── 02_create_users.sql
-│   │   │   └── 03_create_tables.sql
-│   │   ├── migrations/
-│   │   │   └── mysql_to_postgresql.sql
-│   │   ├── queries/
-│   │   │   └── analysis_queries.sql
-│   │   └── optimizations/
-│   │       └── indexes.sql
-│   └── data/
-│       ├── centers.csv
-│       ├── students.zip
-│       └── enrollments.zip
+│   └── postgresql/
+│       ├── init/
+│       │   ├── 01_create_databases.sql
+│       │   ├── 02_create_users.sql
+│       │   └── 03_create_tables.sql
+│       ├── migrations/
+│       │   └── mysql_to_postgresql.sql
+│       ├── queries/
+│       │   └── analysis_queries.sql
+│       └── optimizations/
+│           └── indexes.sql
+├── data/
+│   ├── centers.csv
+│   ├── students.zip
+│   └── enrollments.zip
 ├── tests/
 │   ├── mysql/
 │   │   ├── migration_tests.sql
