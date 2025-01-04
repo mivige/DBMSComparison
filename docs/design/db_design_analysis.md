@@ -153,114 +153,22 @@ erDiagram
 3. **In ENROLLMENTS table:**
    - Academic information (`tipus_ensenyament`, `modalitat`, `curs`, `nom_assignatura`) shows potential partial dependencies
 
-## Normalized Structure
-
-### 1NF (Already Satisfied):
-- All attributes are atomic
-- No repeating groups
-- Primary keys identified
-
-### 2NF and 3NF Normalized Structure:
-
-1. **LOCATION** (Extracted from both CENTRES and STUDENTS)
-```sql
-Primary Key: (ID)
-- ID
-- CP
-- MUNICIPI
-- comunitat_autonoma
-Unique (CP, MUNICIPI, comunitat_autonoma)
-```
-
-2. **CENTRES**
-```sql
-Primary Key: CODI
-- CODI
-- centre_type_id (FK to CENTRE_TYPES)
-- NOM
-- CORREU_ELECTRÒNIC_1
-- CORREU_ELECTRÒNIC_2
-- PÀGINA_WEB
-- owner_id (FK to OWNERS)
-- NIF
-- LOCALITAT
-- ADREÇA
-- location_id (FK to LOCATION)
-- island_id (FK to ISLANDS)
-- TELEF1
-```
-
-3. **STUDENTS**
-```sql
-Primary Key: dni
-- dni
-- nom
-- primer_cognom
-- segon_cognom
-- correu_electronic
-- districte (split during data insertion to match LOCATION and leave here district)
-- location_id (FK to LOCATION)
-```
-
-4. **SUBJECTS**
-```sql
-Primary Key: (id)
-- id
-- nom_assignatura
-- tipus_ensenyament
-- modalitat
-- curs_year_id (FK to COURSE_YEARS)
-Unique (nom_assignatura, tipus_ensenyament, modalitat, curs_year_id)
-```
-
-5. **ENROLLMENTS**
-```sql
-Primary Key: (dni, subject_id, codi_centre)
-- dni (FK to STUDENTS)
-- subject_id (FK to SUBJECTS)
-- codi_centre (FK to CENTRES)
-- grup_de_classe
-```
-
-6. **ISLANDS**
-```sql
-Primary Key: (id)
-- id
-- illa
-```
-
-7. **COURSE_YEARS**
-```sql
-Primary Key: (id)
-- id
-- curs
-```
-
-8. **CENTRE_TYPES**
-```sql
-Primary Key: (id)
-- id
-- denominacio_generica
-```
-
-6. **OWNERS**
-```sql
-Primary Key: (id)
-- id
-- titular
-```
-
-## Final ER Diagram
+## Normalized ER Diagram
 
 [Mermaid](https://mermaid.live/) code to generate the ER Diagram:
 
 ```
 erDiagram
+    AUTONOMOUS_COMMUNITIES {
+        int id PK
+        string comunitat_autonoma
+    }
+
     LOCATION {
         int id PK
         string CP
         string MUNICIPI
-        string comunitat_autonoma
+        int community_id FK
     }
 
     ISLANDS {
@@ -271,6 +179,16 @@ erDiagram
     COURSE_YEARS {
         int id PK
         string curs
+    }
+
+    EDUCATION_TYPES {
+        int id PK
+        string tipus_ensenyament
+    }
+
+    MODALITIES {
+        int id PK
+        string modalitat
     }
 
     CENTRE_TYPES {
@@ -305,15 +223,15 @@ erDiagram
         string primer_cognom
         string segon_cognom
         string correu_electronic
-        string districte
+        string codi_postal_i_districte
         int location_id FK
     }
 
     SUBJECTS {
         int id PK
         string nom_assignatura
-        string tipus_ensenyament
-        string modalitat
+        int education_type_id FK
+        int modality_id FK
         int course_year_id FK
     }
 
@@ -324,12 +242,15 @@ erDiagram
         string grup_de_classe
     }
 
+    AUTONOMOUS_COMMUNITIES ||--o{ LOCATION : "contains"
     LOCATION ||--o{ CENTRES : "located_in"
     LOCATION ||--o{ STUDENTS : "lives_in"
     ISLANDS ||--o{ CENTRES : "belongs_to"
     CENTRE_TYPES ||--o{ CENTRES : "categorizes"
     OWNERS ||--o{ CENTRES : "owns"
     COURSE_YEARS ||--o{ SUBJECTS : "belongs_to"
+    EDUCATION_TYPES ||--o{ SUBJECTS : "classifies"
+    MODALITIES ||--o{ SUBJECTS : "has"
     STUDENTS ||--o{ ENROLLMENTS : "has"
     CENTRES ||--o{ ENROLLMENTS : "hosts"
     SUBJECTS ||--o{ ENROLLMENTS : "included_in"
@@ -359,97 +280,3 @@ erDiagram
 
 7. **Redundancy and Consistency:**
    - Separation of `ISLANDS` and `LOCATION` reduces redundancy and improves data integrity. ✅
-
-# SQL Code 
-SQL code to generate the final normalized tables:
-
-```sql
--- Create table for LOCATION
-CREATE TABLE LOCATION (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    cp VARCHAR(10) NOT NULL,
-    municipi VARCHAR(100) NOT NULL,
-    comunitat_autonoma VARCHAR(100),
-    UNIQUE(cp, municipi, comunitat_autonoma)
-);
-
--- Create table for ISLANDS
-CREATE TABLE ISLANDS (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    illa VARCHAR(100) NOT NULL UNIQUE
-);
-
--- Create table for COURSE_YEARS
-CREATE TABLE COURSE_YEARS (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    curs VARCHAR(50) NOT NULL UNIQUE
-);
-
--- Create table for CENTRE_TYPES
-CREATE TABLE CENTRE_TYPES (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    denominacio_generica VARCHAR(100) NOT NULL UNIQUE
-);
-
--- Create table for OWNERS
-CREATE TABLE OWNERS (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    titular VARCHAR(100) NOT NULL UNIQUE
-);
-
--- Create table for CENTRES
-CREATE TABLE CENTRES (
-    codi VARCHAR(20) PRIMARY KEY,
-    type_id INT NOT NULL,
-    nom VARCHAR(100) NOT NULL,
-    correu_electronic_1 VARCHAR(100) NOT NULL,
-    correu_electronic_2 VARCHAR(100),
-    pagina_web VARCHAR(255),
-    owner_id INT NOT NULL,
-    nif VARCHAR(20),
-    localitat VARCHAR(100),
-    adreca VARCHAR(255),
-    location_id INT NOT NULL,
-    island_id INT NOT NULL,
-    telef1 VARCHAR(20),
-    FOREIGN KEY (type_id) REFERENCES CENTRE_TYPES(id),
-    FOREIGN KEY (owner_id) REFERENCES OWNERS(id),
-    FOREIGN KEY (location_id) REFERENCES LOCATION(id),
-    FOREIGN KEY (island_id) REFERENCES ISLANDS(id)
-);
-
--- Create table for STUDENTS
-CREATE TABLE STUDENTS (
-    dni VARCHAR(20) PRIMARY KEY,
-    nom VARCHAR(100) NOT NULL,
-    primer_cognom VARCHAR(100) NOT NULL,
-    segon_cognom VARCHAR(100),
-    correu_electronic VARCHAR(100) UNIQUE NOT NULL,
-    districte VARCHAR(50),
-    location_id INT NOT NULL,
-    FOREIGN KEY (location_id) REFERENCES LOCATION(id)
-);
-
--- Create table for SUBJECTS
-CREATE TABLE SUBJECTS (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nom_assignatura VARCHAR(100) NOT NULL,
-    tipus_ensenyament VARCHAR(50) NOT NULL,
-    modalitat VARCHAR(50) NOT NULL,
-    course_year_id INT NOT NULL,
-    UNIQUE(nom_assignatura, tipus_ensenyament, modalitat, course_year_id),
-    FOREIGN KEY (course_year_id) REFERENCES COURSE_YEARS(id)
-);
-
--- Create table for ENROLLMENTS
-CREATE TABLE ENROLLMENTS (
-    dni VARCHAR(20) NOT NULL,
-    subject_id INT NOT NULL,
-    codi_centre VARCHAR(20) NOT NULL,
-    grup_de_classe VARCHAR(50),
-    PRIMARY KEY (dni, subject_id, codi_centre),
-    FOREIGN KEY (dni) REFERENCES STUDENTS(dni),
-    FOREIGN KEY (subject_id) REFERENCES SUBJECTS(id),
-    FOREIGN KEY (codi_centre) REFERENCES CENTRES(CODI)
-);
-```
