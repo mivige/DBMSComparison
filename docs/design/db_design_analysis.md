@@ -239,7 +239,7 @@ erDiagram
         string dni PK, FK
         int subject_id PK, FK
         string codi_centre PK, FK
-        string grup_de_classe
+        string grup_de_classe PK
     }
 
     AUTONOMOUS_COMMUNITIES ||--o{ LOCATION : "contains"
