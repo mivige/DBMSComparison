@@ -10,7 +10,7 @@ FROM CENTRES c
 JOIN ENROLLMENTS e ON c.CODI = e.codi_centre
 JOIN SUBJECTS s ON e.subject_id = s.id
 JOIN EDUCATION_TYPES et ON s.education_type_id = et.id
-WHERE et.tipus_ensenyament = 'Formació Professional'
+WHERE et.tipus_ensenyament = 'FPA'
 GROUP BY c.CODI, c.NOM
 ORDER BY num_students DESC;
 
@@ -24,8 +24,7 @@ SELECT
     COUNT(e.subject_id) / COUNT(DISTINCT e.dni) as avg_subjects_per_student
 FROM CENTRES c
 JOIN ENROLLMENTS e ON c.CODI = e.codi_centre
-GROUP BY c.CODI, c.NOM
-HAVING total_students > 10  -- Adjust threshold as needed
+GROUP BY c.CODI
 ORDER BY total_students DESC, total_enrollments DESC
 LIMIT 10;
 
@@ -51,9 +50,9 @@ SELECT
     s.primer_cognom,
     s.segon_cognom,
     s.correu_electronic,
-    s.districte,
     l.MUNICIPI,
-    l.CP
+    l.CP,
+    s.districte
 FROM STUDENTS s
 LEFT JOIN ENROLLMENTS e ON s.dni = e.dni
 LEFT JOIN LOCATION l ON s.location_id = l.id
@@ -81,27 +80,39 @@ WITH UnenrolledStudents AS (
     LEFT JOIN ENROLLMENTS e ON s.dni = e.dni
     LEFT JOIN LOCATION l ON s.location_id = l.id
     WHERE e.dni IS NULL
+),
+RankedCenters AS (
+    SELECT 
+        us.dni,
+        us.nom,
+        us.primer_cognom,
+        us.segon_cognom,
+        us.student_municipi,
+        us.student_cp,
+        c.CODI as centre_code,
+        c.NOM as centre_name,
+        c.LOCALITAT as centre_locality,
+        l.CP as centre_cp,
+        ROW_NUMBER() OVER (
+            PARTITION BY us.dni 
+            ORDER BY 
+                CASE WHEN us.student_municipi = l.municipi THEN 1 ELSE 2 END,  -- Priority: Same municipality
+                ABS(CAST(us.student_cp AS SIGNED) - CAST(l.CP AS SIGNED))      -- Fallback: Closest postal code
+        ) as row_num
+    FROM UnenrolledStudents us
+    CROSS JOIN CENTRES c
+    JOIN LOCATION l ON c.location_id = l.id
 )
 SELECT 
-    us.dni,
-    us.nom,
-    us.primer_cognom,
-    us.segon_cognom,
-    us.student_municipi,
-    us.student_cp,
-    c.CODI as recommended_centre_code,
-    c.NOM as recommended_centre_name,
-    c.LOCALITAT as centre_locality,
-    l.CP as centre_cp
-FROM UnenrolledStudents us
-CROSS JOIN CENTRES c
-JOIN LOCATION l ON c.location_id = l.id
-WHERE 
-    -- Priority 1: Same municipality
-    us.student_municipi = c.LOCALITAT
-    -- Priority 2: If multiple centers in same municipality, use postal code proximity
-    ORDER BY 
-        CASE WHEN us.student_municipi = c.LOCALITAT THEN 0 ELSE 1 END,
-        ABS(CAST(REPLACE(us.student_cp, ' ', '') AS UNSIGNED) - 
-            CAST(REPLACE(l.CP, ' ', '') AS UNSIGNED))
-;
+    rc.dni,
+    rc.nom,
+    rc.primer_cognom,
+    rc.segon_cognom,
+    rc.student_municipi,
+    rc.student_cp,
+    rc.centre_code,
+    rc.centre_name,
+    rc.centre_locality,
+    rc.centre_cp
+FROM RankedCenters rc
+WHERE rc.row_num = 1; -- Select only the top-ranked center for each student
