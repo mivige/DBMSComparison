@@ -1,0 +1,33 @@
+-- 1.
+-- Create tablespace PANDORA
+-- Note: Adjust the location path according to your PostgreSQL setup
+CREATE TABLESPACE PANDORA
+    LOCATION '/var/lib/postgresql/data/pandora';
+
+-- Create database GESTMAT using the PANDORA tablespace
+CREATE DATABASE GESTMAT
+    TABLESPACE PANDORA
+    ENCODING 'UTF8';
+
+-- 2.
+-- Connect to the GESTMAT database
+\c GESTMAT
+
+-- Create OLDGESTMAT schema
+CREATE SCHEMA OLDGESTMAT;
+
+-- 3.
+-- Create user UDATAMOVEMENT with required privileges
+CREATE USER UDATAMOVEMENT WITH PASSWORD 'password';
+
+-- Grant necessary privileges to UDATAMOVEMENT user on OLDGESTMAT schema
+GRANT USAGE ON SCHEMA OLDGESTMAT TO UDATAMOVEMENT;
+GRANT CREATE ON SCHEMA OLDGESTMAT TO UDATAMOVEMENT;
+GRANT INSERT ON ALL TABLES IN SCHEMA OLDGESTMAT TO UDATAMOVEMENT;
+
+-- Allow UDATAMOVEMENT to create new tables in OLDGESTMAT schema
+ALTER DEFAULT PRIVILEGES IN SCHEMA OLDGESTMAT
+GRANT INSERT ON TABLES TO UDATAMOVEMENT;
+
+-- Apply the privileges
+GRANT CONNECT ON DATABASE GESTMAT TO UDATAMOVEMENT;
