@@ -97,62 +97,83 @@ CREATE INDEX idx_location_student ON LOCATION(id);
 CREATE INDEX idx_location_municipi ON LOCATION(MUNICIPI);
 CREATE INDEX idx_location_cp ON LOCATION(CP);
 CREATE INDEX idx_centres_location ON CENTRES(location_id);
+CREATE INDEX idx_location_municipi_cp ON LOCATION(MUNICIPI, CP);
+CREATE INDEX idx_centres_location_composite ON CENTRES(location_id, CODI);
+CREATE INDEX idx_enrollments_student ON ENROLLMENTS(dni);
 
--- Optimized query:
-WITH UnenrolledStudents AS (
-    SELECT 
-        s.dni,
-        s.nom,
-        s.primer_cognom,
-        s.segon_cognom,
-        l.MUNICIPI as student_municipi,
-        CAST(REPLACE(l.CP, ' ', '') AS SIGNED) as student_cp_num
-    FROM STUDENTS s
-    LEFT JOIN ENROLLMENTS e ON s.dni = e.dni
-    LEFT JOIN LOCATION l ON s.location_id = l.id
-    WHERE e.dni IS NULL
-),
-CentreDistances AS (
-    SELECT 
-        us.dni,
-        us.nom,
-        us.primer_cognom,
-        us.segon_cognom,
-        us.student_municipi,
-        c.CODI as centre_code,
-        c.NOM as centre_name,
-        l.MUNICIPI as centre_municipi,
-        l.CP as centre_cp,
-        (us.student_municipi = l.MUNICIPI) as same_municipality,
-        ABS(us.student_cp_num - CAST(REPLACE(l.CP, ' ', '') AS SIGNED)) as cp_distance
-    FROM UnenrolledStudents us
-    CROSS JOIN CENTRES c 
-    JOIN LOCATION l ON c.location_id = l.id
-),
-RankedCentres AS (
-    SELECT *,
-        ROW_NUMBER() OVER (
-            PARTITION BY dni 
-            ORDER BY 
-                same_municipality DESC,  -- First priority: same municipality
-                cp_distance             -- Second priority: closest postal code
-        ) as rn
-    FROM CentreDistances
-)
+
+-- Base view for unenrolled students with their location data
+CREATE VIEW v_unenrolled_students AS
+SELECT DISTINCT
+    s.dni,
+    s.nom,
+    s.primer_cognom,
+    s.segon_cognom,
+    l.MUNICIPI,
+    l.CP,
+    CAST(REPLACE(l.CP, ' ', '') AS SIGNED) as cp_num
+FROM STUDENTS s
+LEFT JOIN ENROLLMENTS e ON s.dni = e.dni
+JOIN LOCATION l ON s.location_id = l.id
+WHERE e.dni IS NULL;
+
+-- Base view for centres with their location data
+CREATE VIEW v_centre_locations AS
+SELECT 
+    c.CODI,
+    c.NOM,
+    l.MUNICIPI,
+    l.CP,
+    CAST(REPLACE(l.CP, ' ', '') AS SIGNED) as cp_num
+FROM CENTRES c
+JOIN LOCATION l ON c.location_id = l.id;
+
+-- View that contains all possible student-centre matches with their distances
+CREATE VIEW v_student_centre_distances AS
+SELECT 
+    us.dni,
+    us.nom,
+    us.primer_cognom,
+    us.segon_cognom,
+    us.MUNICIPI as student_municipi,
+    us.CP as student_cp,
+    cl.CODI as centre_code,
+    cl.NOM as centre_name,
+    cl.MUNICIPI as centre_municipi,
+    cl.CP as centre_cp,
+    (us.MUNICIPI = cl.MUNICIPI) as same_municipality,
+    ABS(us.cp_num - cl.cp_num) as cp_distance
+FROM v_unenrolled_students us
+CROSS JOIN v_centre_locations cl
+WHERE ABS(us.cp_num - cl.cp_num) <= 5000;  -- Distance limit to reduce rows
+
+-- View with the final ranked results
+CREATE VIEW v_recommended_centres AS
+SELECT 
+    *,
+    ROW_NUMBER() OVER (
+        PARTITION BY dni
+        ORDER BY 
+            same_municipality DESC,
+            cp_distance
+    ) as rn
+FROM v_student_centre_distances;
+
+-- Final simple query
 SELECT 
     dni,
     nom,
     primer_cognom,
     segon_cognom,
     student_municipi,
+    student_cp,
     centre_code,
     centre_name,
     centre_municipi,
     centre_cp,
-    CASE 
-        WHEN same_municipality = 1 THEN 'Same Municipality'
-        ELSE 'Different Municipality'
+    CASE WHEN same_municipality THEN 'Same Municipality'
+         ELSE 'Different Municipality'
     END as location_type,
-    cp_distance as postal_code_distance
-FROM RankedCentres
+    cp_distance
+FROM v_recommended_centres
 WHERE rn = 1;
