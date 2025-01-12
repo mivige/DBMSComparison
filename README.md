@@ -20,26 +20,25 @@ DBMSComparison/
 ├── src/
 │   ├── mysql/
 │   │   ├── init/
-│   │   │   ├── 01_create_databases.sql
-│   │   │   ├── 02_create_users.sql
-│   │   │   └── 03_create_tables.sql
+│   │   │   ├── 01_raw_import_setup.sql
+│   │   │   └── 02_gestmat_setup.sql
 │   │   ├── migrations/
-│   │   │   └── raw_to_gestmat.sql
+│   │   │   └── 03_raw_to_gestmat.sql
 │   │   ├── queries/
-│   │   │   └── analysis_queries.sql
+│   │   │   └── 04_questions.sql
 │   │   └── optimizations/
-│   │       └── indexes.sql
+│   │       └── 05_optimizations.sql
 │   └── postgresql/
 │       ├── init/
-│       │   ├── 01_create_databases.sql
-│       │   ├── 02_create_users.sql
-│       │   └── 03_create_tables.sql
+│       │   ├── 06_gestmat_setup.sql
+│       │   ├── 07_mysql_to_pg.load     -- Setup file for pgloader
+│       │   └── 08_prod_setup.sql
 │       ├── migrations/
-│       │   └── mysql_to_postgresql.sql
+│       │   └── 
 │       ├── queries/
-│       │   └── analysis_queries.sql
+│       │   └── 
 │       └── optimizations/
-│           └── indexes.sql
+│           └── 
 ├── data/
 │   ├── centers.csv
 │   ├── students.zip
@@ -57,7 +56,9 @@ DBMSComparison/
 │   └── scripts/
 │       ├── setup_environment.sh
 │       └── run_tests.sh
+├── assignment/
+│   ├── Pràctica 2024-25.pdf            -- Assignment requests
+│   └── 
 ├── LICENSE
-├── README.md
-└── requirements.txt
+└── README.md
 ```
