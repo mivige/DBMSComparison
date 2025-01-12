@@ -1,0 +1,5 @@
+LOAD DATABASE
+    FROM mysql://migration_user:password@<windows_ip_address>:3306/GESTMAT
+    INTO postgresql://UDATAMOVEMENT:password@localhost/gestmat
+    SET search_path TO 'oldgestmat'
+;
