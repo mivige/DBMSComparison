@@ -1,3 +1,124 @@
-5. Crear un esquema PROD dins de la base de dades GESTMAT. 
-6. Crear un usuari UCONSELLERIA, amb privilegis per a poder gestionar la base de dades GESTMAT i qualsevol dels dos esquemes creats anteriorment (OLDGESTMAT i PROD). Ha de ser el propietari de la base de dades. 
-7. Adaptar i generar amb l’usuari UCONSELLERIA la base de dades del punt 1 per a PostgreSQL
+-- 5.
+-- Create PROD schema in GESTMAT database
+\c GESTMAT
+CREATE SCHEMA PROD;
+
+-- 6.
+-- Create UCONSELLERIA user and grant privileges
+CREATE USER UCONSELLERIA WITH PASSWORD 'password';
+
+-- Make UCONSELLERIA owner of GESTMAT database
+ALTER DATABASE GESTMAT OWNER TO UCONSELLERIA;
+
+-- Grant all privileges on existing schemas
+GRANT ALL PRIVILEGES ON SCHEMA OLDGESTMAT TO UCONSELLERIA;
+GRANT ALL PRIVILEGES ON SCHEMA PROD TO UCONSELLERIA;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA OLDGESTMAT TO UCONSELLERIA;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA OLDGESTMAT TO UCONSELLERIA;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA PROD TO UCONSELLERIA;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA PROD TO UCONSELLERIA;
+
+-- 7.
+-- Connect as UCONSELLERIA and create tables
+\c GESTMAT UCONSELLERIA
+
+SET search_path TO PROD;
+
+-- Create tables in PROD schema
+CREATE TABLE AUTONOMOUS_COMMUNITIES (
+    id SERIAL PRIMARY KEY,
+    comunitat_autonoma VARCHAR(104) NOT NULL UNIQUE
+);
+
+CREATE TABLE LOCATION (
+    id SERIAL PRIMARY KEY,
+    CP VARCHAR(8) NOT NULL,
+    MUNICIPI VARCHAR(104) NOT NULL,
+    community_id INTEGER NOT NULL,
+    FOREIGN KEY (community_id) REFERENCES AUTONOMOUS_COMMUNITIES(id),
+    UNIQUE(CP, MUNICIPI, community_id)
+);
+
+CREATE TABLE ISLANDS (
+    id SERIAL PRIMARY KEY,
+    illa VARCHAR(104) NOT NULL UNIQUE
+);
+
+CREATE TABLE COURSE_YEARS (
+    id SERIAL PRIMARY KEY,
+    curs VARCHAR(48) NOT NULL UNIQUE
+);
+
+CREATE TABLE EDUCATION_TYPES (
+    id SERIAL PRIMARY KEY,
+    tipus_ensenyament VARCHAR(56) NOT NULL UNIQUE
+);
+
+CREATE TABLE MODALITIES (
+    id SERIAL PRIMARY KEY,
+    modalitat VARCHAR(56) NOT NULL UNIQUE
+);
+
+CREATE TABLE CENTRE_TYPES (
+    id SERIAL PRIMARY KEY,
+    DENOMINACIO_GENERICA VARCHAR(104) NOT NULL UNIQUE
+);
+
+CREATE TABLE OWNERS (
+    id SERIAL PRIMARY KEY,
+    TITULAR VARCHAR(256) NOT NULL UNIQUE
+);
+
+CREATE TABLE CENTRES (
+    CODI VARCHAR(24) PRIMARY KEY,
+    type_id INTEGER NOT NULL,
+    NOM VARCHAR(256) NOT NULL,
+    CORREU_ELECTRONIC_1 VARCHAR(256),
+    CORREU_ELECTRONIC_2 VARCHAR(256),
+    PAGINA_WEB VARCHAR(256),
+    owner_id INTEGER NOT NULL,
+    NIF VARCHAR(24) NOT NULL,
+    LOCALITAT VARCHAR(256) NOT NULL,
+    ADRECA VARCHAR(256) NOT NULL,
+    location_id INTEGER NOT NULL,
+    island_id INTEGER NOT NULL,
+    TELEF1 VARCHAR(16),
+    FOREIGN KEY (type_id) REFERENCES CENTRE_TYPES(id),
+    FOREIGN KEY (owner_id) REFERENCES OWNERS(id),
+    FOREIGN KEY (location_id) REFERENCES LOCATION(id),
+    FOREIGN KEY (island_id) REFERENCES ISLANDS(id)
+);
+
+CREATE TABLE STUDENTS (
+    dni VARCHAR(24) PRIMARY KEY,
+    nom VARCHAR(256) NOT NULL,
+    primer_cognom VARCHAR(256) NOT NULL,
+    segon_cognom VARCHAR(256),
+    correu_electronic VARCHAR(256) NOT NULL,  -- Should be unique but because of the data provided duplicate mails exists
+    districte VARCHAR(24) NOT NULL,
+    location_id INTEGER NOT NULL,
+    FOREIGN KEY (location_id) REFERENCES LOCATION(id)
+);
+
+CREATE TABLE SUBJECTS (
+    id SERIAL PRIMARY KEY,
+    nom_assignatura VARCHAR(256) NOT NULL,
+    education_type_id INTEGER NOT NULL,
+    modality_id INTEGER NOT NULL,
+    course_year_id INTEGER NOT NULL,
+    FOREIGN KEY (education_type_id) REFERENCES EDUCATION_TYPES(id),
+    FOREIGN KEY (modality_id) REFERENCES MODALITIES(id),
+    FOREIGN KEY (course_year_id) REFERENCES COURSE_YEARS(id),
+    UNIQUE(nom_assignatura, education_type_id, modality_id, course_year_id)
+);
+
+CREATE TABLE ENROLLMENTS (
+    dni VARCHAR(24),
+    subject_id INTEGER,
+    codi_centre VARCHAR(24),
+    grup_de_classe VARCHAR(56),
+    PRIMARY KEY (dni, subject_id, codi_centre, grup_de_classe),
+    FOREIGN KEY (dni) REFERENCES STUDENTS(dni),
+    FOREIGN KEY (subject_id) REFERENCES SUBJECTS(id),
+    FOREIGN KEY (codi_centre) REFERENCES CENTRES(CODI)
+);
