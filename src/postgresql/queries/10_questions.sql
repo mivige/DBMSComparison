@@ -1,3 +1,4 @@
+-- 10.
 -- a. Which centers have users enrolled in Professional Training courses, and how many?
 -- Main changes: None needed, basic SQL is compatible
 SELECT 

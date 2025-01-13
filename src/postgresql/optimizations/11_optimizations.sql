@@ -1,3 +1,4 @@
+-- 11.
 -- PostgreSQL-specific optimizations for the queries:
 
 SET max_parallel_workers_per_gather = 4;
