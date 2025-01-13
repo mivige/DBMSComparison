@@ -18,10 +18,12 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA OLDGESTMAT TO UCONSELLERIA;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA PROD TO UCONSELLERIA;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA PROD TO UCONSELLERIA;
 
--- 7.
--- Connect as UCONSELLERIA and create tables
-\c GESTMAT UCONSELLERIA
+-- Now connect as UCONSELLERIA:
+-- postgres=# exit
+-- mivige@mivige-VirtualBox:~$ psql -U uconselleria -d gestmat
 
+-- 7.
+-- Create tables
 SET search_path TO PROD;
 
 -- Create tables in PROD schema

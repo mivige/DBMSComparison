@@ -1,6 +1,7 @@
 -- 8. Data migration from OLDGESTMAT to PROD schema
--- Connect as UCONSELLERIA
-\c GESTMAT UCONSELLERIA
+-- Connect as UCONSELLERIA:
+-- postgres=# exit
+-- mivige@mivige-VirtualBox:~$ psql -U uconselleria -d gestmat
 
 -- Set search path to include both schemas
 SET search_path TO PROD, OLDGESTMAT;
