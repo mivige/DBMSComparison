@@ -4,8 +4,8 @@
 
 ### Hardware Specifications
 - CPU: Intel i5 7200U
-- RAM: 16GB
-- Storage: SSD
+- RAM: 16GB 2133MHz
+- Storage: Samsung SSD 860 EVO
 
 ### Dataset Characteristics
 - Geographic Scope: Illes Baleares Autonomous Community
