@@ -16,7 +16,7 @@ DBMSComparison/
 │   │   └── queries.md
 │   └── performance/
 │       ├── benchmarks.md
-│       └── comparison_results.md
+│       └── results_comparison.md
 ├── src/
 │   ├── mysql/
 │   │   ├── init/
@@ -34,28 +34,20 @@ DBMSComparison/
 │       │   ├── 07_mysql_to_pg.load     -- Setup file for pgloader
 │       │   └── 08_prod_setup.sql
 │       ├── migrations/
-│       │   └── 
+│       │   └── 09_old_to_prod.sql
 │       ├── queries/
-│       │   └── 
+│       │   └── 10_questions.sql
 │       └── optimizations/
-│           └── 
+│           └── 11_optimizations.sql
 ├── data/
 │   ├── centers.csv
 │   ├── students.zip
 │   └── enrollments.zip
 ├── tests/
 │   ├── mysql/
-│   │   ├── migration_tests.sql
-│   │   └── query_tests.sql
+│   │   └── migration_tests.sql
 │   └── postgresql/
-│       ├── migration_tests.sql
-│       └── query_tests.sql
-├── utils/
-│   ├── performance_testing/
-│   │   └── benchmark_script.py
-│   └── scripts/
-│       ├── setup_environment.sh
-│       └── run_tests.sh
+│       └── migration_test.sql
 ├── assignment/
 │   ├── Pràctica 2024-25.pdf            -- Assignment requests
 │   └── 
