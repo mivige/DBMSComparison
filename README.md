@@ -98,9 +98,15 @@ DBMSComparison/
 
 ### MySQL
 
-1. Import all the files following the order, for example:
+1. Import all the files following the order:
    ```bash
    mysql < src/mysql/init/01_raw_import_setup.sql
+   ```
+   ```bash
+   mysql < src/mysql/init/02_gestmat_setup.sql
+   ```
+   ```bash
+   mysql < src/mysql/migrations/03_raw_to_gestmat.sql
    ```
 2. Execute queries:
    ```bash
@@ -117,7 +123,14 @@ DBMSComparison/
    ```bash
    pgloader src/postgresql/init/07_mysql_to_pg.load
    ```
-3. Execute queries:
+3. Migrate data to Prod DB:
+   ```bash
+   psql -f src/postgresql/init/08_prod_setup.sql
+   ```
+   ```bash
+   psql -f src/postgresql/migrations/09_old_to_prod.sql
+   ```
+4. Execute queries:
    ```bash
    psql -f src/postgresql/queries/10_questions.sql
    ```

@@ -1,4 +1,5 @@
 -- I. SQL Queries
+USE GESTMAT;
 
 -- a. Which centers have users enrolled in Professional Training courses, and how many?
 -- (Quins centres tenen usuaris matriculats a assignatures de Formació Professional, i quina quantitat?)
